@@ -1,9 +1,13 @@
+from datetime import datetime
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-from Entity.live import Live
-from src.repository.scraping.scraper import Scraper
+from Entity.live import Live, Prefecture
+from Entity.ticket import Ticket
+from scraper import Scraper
+from util.date_range import DateRange
 
 
 class EPlusScraper(Scraper):
@@ -14,18 +18,10 @@ class EPlusScraper(Scraper):
         browser = self._activate_browser()
 
         self._move_artist_search_result(browser, artist)
-        lives_url = self._scan_lives(browser)
+        lives_url = self._scan_lives_url(browser)
 
-        apply_ranges = []
-        for url in lives_url:
-            browser.get(url)
-            apply_range = browser.find_element(
-                By.CSS_SELECTOR,
-                "section.block-ticket:not(.hidden) p.block-ticket__time",
-            ).text
-            apply_ranges.append(apply_range)
-            browser.back()
-        print(apply_ranges)
+        lives = self._scan_lives(lives_url, browser)
+        print(lives)
 
     def _activate_browser(self):
         options = Options()
@@ -37,13 +33,7 @@ class EPlusScraper(Scraper):
         browser.find_element(By.ID, "head_keyword").send_keys(artist)
         browser.find_element(By.ID, "head_search").click()
 
-    def _move(self, browser: webdriver.Chrome, url: str):
-        browser.get(url)
-
-    def _back(self, browser: webdriver.Chrome):
-        browser.back()
-
-    def _scan_lives(self, browser: webdriver.Chrome):
+    def _scan_lives_url(self, browser: webdriver.Chrome):
         return [
             live.get_attribute("href")
             for live in browser.find_elements(
@@ -52,18 +42,28 @@ class EPlusScraper(Scraper):
             )
         ]
 
-    class LiveDetailScanner:
-        def __init__(self):
-            pass
+    def _scan_lives(self, urls: list[str], browser: webdriver.Chrome) -> list[Live]:
+        return [self._scan_live(url, browser) for url in urls]
 
-        def scan(self, urls: list[str], browser: webdriver.Chrome) -> list[Live]:
-            return [self._scan_live(url, browser) for url in urls]
-
-        def _scan_live(self, live_detail_url: str, browser: webdriver.Chrome) -> Live:
-            self._move(browser, live_detail_url)
-            # apply_range = browser.find_element(
-            #     By.CSS_SELECTOR,
-            #     "section.block-ticket:not(.hidden) p.block-ticket__time",
-            # ).text
-            # apply_range.append(apply_range)
-            self._back(browser)
+    def _scan_live(self, live_detail_url: str, browser: webdriver.Chrome) -> Live:
+        browser.get(live_detail_url)
+        tickets: list[Ticket] = [
+            Ticket(
+                name="チケット",
+                apply_status="申込期間",
+                apply_period=DateRange(
+                    start_date=datetime.fromisoformat("2021-09-01"),
+                    end_date=datetime.fromisoformat("2021-09-30"),
+                ),
+            )
+        ]
+        live = Live(
+            name="ライブ",
+            start_date=datetime.fromisoformat("2021-10-01"),
+            prefecture=Prefecture.Tokyo,
+            venue="東京ドーム",
+            website_url=live_detail_url,
+            tickets=tickets,
+        )
+        browser.back()
+        return live
