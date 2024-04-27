@@ -10,4 +10,4 @@ class Scraper(ABC):
 
     @abstractmethod
     def search_live(self, artist: str):
-        pass
+        pass 
