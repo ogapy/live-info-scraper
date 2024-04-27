@@ -31,17 +31,14 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Run black
-        run: poetry run black --check .
+      - name: Run Ruff (lint)
+        run: poetry run ruff check --output-format=github .
 
-      - name: Run isort
-        run: poetry run isort --check .
+      - name: Run Ruff (format)
+        run: poetry run ruff format . --check --diff
 
       - name: Run mypy
         run: poetry run mypy .
-
-      - name: Run flake8
-        run: poetry run flake8 .
 
       - name: Run pytest
         run: poetry run pytest

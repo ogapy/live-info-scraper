@@ -5,7 +5,6 @@ from selenium.webdriver.chrome.options import Options
 
 
 class Scraper(ABC):
-
     def __init__(self, url: str):
         self.url = url
 
