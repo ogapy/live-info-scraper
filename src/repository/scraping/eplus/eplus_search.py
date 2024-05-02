@@ -1,19 +1,16 @@
-from datetime import datetime
-
 from Entity.live import Live
-from Entity.ticket import Ticket
-from scraper import Scraper
-from util.date_range import DateRange
-
 from repository.scraping.browser_manager import BrowserManager, SearchBy
 from repository.scraping.eplus.raw_live_info_extractor import RawLiveInfoExtractor
+from repository.scraping.eplus.ticket_info_extractor import TicketsInfoExtractor
+from scraper import Scraper
 
 
 class EPlusScraper(Scraper):
     def __init__(self, url: str):
         super().__init__(url)
         self.browser_manager = BrowserManager(url)
-        self.live_details_extractor = RawLiveInfoExtractor(self.browser_manager)
+        self.raw_live_info_extractor = RawLiveInfoExtractor(self.browser_manager)
+        self.tickets_info_extractor = TicketsInfoExtractor(self.browser_manager)
 
     def search_live(self, artist: str):
         self._move_artist_search_result(artist)
@@ -38,28 +35,14 @@ class EPlusScraper(Scraper):
     def _scan_lives(self, urls: list[str]):
         return [self._scan_live(url, i) for i, url in enumerate(urls)]
 
-    def _scan_live(self, live_detail_url: str, index: int):
-        raw_live_infos = self.live_details_extractor.extract_live_details(index)
+    def _scan_live(self, live_url: str, index: int):
+        raw_live_infos = self.raw_live_info_extractor.extract_live_details(index)
 
-        # self.browser_manager.get(live_detail_url)
-        tickets = self._scan_tickets_details()
-        live = self._create_live_object(raw_live_infos, live_detail_url, tickets)
-        # self.browser_manager.back()
+        tickets = self.tickets_info_extractor.extract_tickets(live_url)
+        live = self._create_live_object(raw_live_infos, live_url, tickets)
         return live
 
-    def _scan_tickets_details(self) -> list[Ticket]:
-        return [
-            Ticket(
-                name="チケット",
-                apply_status="申込期間",
-                apply_period=DateRange(
-                    start_date=datetime(2021, 9, 1),
-                    end_date=datetime(2021, 9, 30),
-                ),
-            )
-        ]
-
-    def _create_live_object(self, raw_live_infos, live_detail_url, tickets) -> Live:
+    def _create_live_object(self, raw_live_infos, live_url, tickets) -> Live:
         return Live(
             name=raw_live_infos.name,
             raw_date_range=raw_live_infos.raw_date_range,
@@ -67,6 +50,6 @@ class EPlusScraper(Scraper):
             prefecture=raw_live_infos.prefecture,
             venue=raw_live_infos.venue,
             apply_status=raw_live_infos.apply_status,
-            website_url=live_detail_url,
+            website_url=live_url,
             tickets=tickets,
         )

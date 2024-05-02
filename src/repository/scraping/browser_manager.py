@@ -33,7 +33,10 @@ class BrowserManager:
         self.find_element(by, value).send_keys(keys)
 
     def click(self, by: SearchBy, value: str):
-        self.find_element(by, value).click()
+        try:
+            self.find_element(by, value).click()
+        except Exception:
+            pass
 
     def find_element(self, by: SearchBy, value: str):
         return self.browser.find_element(by.value, value)
