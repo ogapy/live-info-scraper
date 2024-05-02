@@ -3,10 +3,9 @@ from datetime import datetime
 
 from Entity.live import Live, Prefecture, RawLiveInfo
 from Entity.ticket import Ticket
+from repository.scraping.browser_manager import BrowserManager, SearchBy
 from scraper import Scraper
 from util.date_range import DateRange
-
-from repository.scraping.browser_manager import BrowserManager, SearchBy
 
 
 class EPlusScraper(Scraper):
@@ -27,10 +26,8 @@ class EPlusScraper(Scraper):
 
     def _scan_lives_url(self):
         return [
-            live.get_attribute(
-                "href"
-            )  # TODO: seleniumのメソッドを直接つかうのはよくない
-            for live in self.browser_manager.find_elements(
+            self.browser_manager.get_attribute(live_link, "href")
+            for live_link in self.browser_manager.find_elements(
                 SearchBy.CSS_SELECTOR,
                 "a[href*='/sf/detail/']",
             )

@@ -3,6 +3,7 @@ from enum import Enum
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 
 
 class SearchBy(Enum):
@@ -39,6 +40,9 @@ class BrowserManager:
 
     def find_elements(self, by: SearchBy, value: str):
         return self.browser.find_elements(by.value, value)
+
+    def get_element_attribute(self, element: WebElement, attribute: str):
+        return element.get_attribute(attribute)
 
     def get(self, url):
         self.browser.get(url)
