@@ -14,10 +14,10 @@ class DateRange(BaseModel):
     end_date: datetime
 
     def __init__(self, start_date: datetime, end_date: datetime):
-        super().__init__()
+        super().__init__(start_date=start_date, end_date=end_date)
 
         if start_date > end_date:
-            raise DateRangeError("開始日は終了日よりも前xでなければなりません。")
+            raise DateRangeError("開始日は終了日よりも前でなければなりません。")
         self.start_date = start_date
         self.end_date = end_date
 
