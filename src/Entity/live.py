@@ -59,7 +59,7 @@ class Prefecture(str, Enum):
     Unknown = "不明"
 
 
-class ApplyState(str, Enum):
+class LiveApplyState(str, Enum):
     Apply = "受付中"
     SoldOut = "予定枚数終了"
     NotApply = "受付前"
@@ -73,7 +73,7 @@ class Live(BaseModel):
     prefecture: Prefecture
     venue: str
     website_url: str
-    apply_status: ApplyState
+    apply_status: LiveApplyState
     tickets: list[Ticket]
 
 
@@ -83,4 +83,4 @@ class RawLiveInfo(BaseModel):
     date_range: DateRange
     prefecture: Prefecture
     venue: str
-    apply_status: ApplyState
+    apply_status: LiveApplyState
