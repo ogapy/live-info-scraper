@@ -2,10 +2,11 @@ from datetime import datetime
 
 from Entity.live import Live
 from Entity.ticket import Ticket
-from repository.scraping.browser_manager import BrowserManager, SearchBy
-from repository.scraping.eplus.live_detail_extractor import LiveDetailsExtractor
 from scraper import Scraper
 from util.date_range import DateRange
+
+from repository.scraping.browser_manager import BrowserManager, SearchBy
+from repository.scraping.eplus.live_detail_extractor import LiveDetailsExtractor
 
 
 class EPlusScraper(Scraper):
@@ -38,12 +39,16 @@ class EPlusScraper(Scraper):
         return [self._scan_live(url, i) for i, url in enumerate(urls)]
 
     def _scan_live(self, live_detail_url: str, index: int):
-        # ライブの一覧ページにいます
         raw_live_infos = self.live_details_extractor.extract_live_details(index)
-        # tickets = self._scan_tickets_details(live_detail_url, browser)
 
         self.browser_manager.get(live_detail_url)
-        tickets: list[Ticket] = [
+        tickets = self._scan_tickets_details(live_detail_url)
+        live = self._create_live_object(raw_live_infos, live_detail_url, tickets)
+        self.browser_manager.back()
+        return live
+
+    def _scan_tickets_details(self) -> list[Ticket]:
+        return [
             Ticket(
                 name="チケット",
                 apply_status="申込期間",
@@ -53,7 +58,9 @@ class EPlusScraper(Scraper):
                 ),
             )
         ]
-        live = Live(
+
+    def _create_live_object(self, raw_live_infos, live_detail_url, tickets) -> Live:
+        return Live(
             name=raw_live_infos.name,
             raw_date_range=raw_live_infos.raw_date_range,
             date_range=raw_live_infos.date_range,
@@ -62,5 +69,3 @@ class EPlusScraper(Scraper):
             website_url=live_detail_url,
             tickets=tickets,
         )
-        self.browser_manager.back()
-        return live
