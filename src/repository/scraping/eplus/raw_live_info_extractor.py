@@ -1,13 +1,13 @@
 import re
 from datetime import datetime
 
-from Entity.live import Prefecture, RawLiveInfo
+from Entity.live import ApplyState, Prefecture, RawLiveInfo
 from util.date_range import DateRange
 
 from repository.scraping.browser_manager import SearchBy
 
 
-class LiveDetailsExtractor:
+class RawLiveInfoExtractor:
     def __init__(self, browser_manager):
         self.browser_manager = browser_manager
 
@@ -22,6 +22,7 @@ class LiveDetailsExtractor:
             date_range=self._parse_date_range(raw_date_range),
             prefecture=self._parse_prefecture(venue_text),
             venue=self._parse_venue(venue_text),
+            apply_status=self._extract_apply_status(nth_child_index),
         )
 
     def _extract_venue_text(self, nth_child_index: int) -> str:
@@ -41,6 +42,13 @@ class LiveDetailsExtractor:
             SearchBy.CSS_SELECTOR,
             f"a[href*='/sf/detail/']:nth-child({nth_child_index}) .ticket-item__title",
         ).text
+
+    def _extract_apply_status(self, nth_child_index: int) -> ApplyState:
+        raw_apply_status = self.browser_manager.find_element(
+            SearchBy.CSS_SELECTOR,
+            f"a[href*='/sf/detail/']:nth-child({nth_child_index}) .ticket-status__item",
+        ).text
+        return ApplyState(raw_apply_status)
 
     def _parse_date_range(self, raw_date_range: str) -> DateRange:
         def _parse_date(date: str) -> datetime:

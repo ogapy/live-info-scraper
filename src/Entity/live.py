@@ -1,9 +1,9 @@
 from enum import Enum
 
 from pydantic import BaseModel
-from util.date_range import DateRange
 
 from Entity.ticket import Ticket
+from util.date_range import DateRange
 
 
 # 都道府県のEnum
@@ -59,6 +59,13 @@ class Prefecture(str, Enum):
     Unknown = "不明"
 
 
+class ApplyState(str, Enum):
+    Apply = "受付中"
+    SoldOut = "予定枚数終了"
+    NotApply = "受付前"
+    End = "受付終了"
+
+
 class Live(BaseModel):
     name: str
     raw_date_range: str
@@ -66,6 +73,7 @@ class Live(BaseModel):
     prefecture: Prefecture
     venue: str
     website_url: str
+    apply_status: ApplyState
     tickets: list[Ticket]
 
 
@@ -75,3 +83,4 @@ class RawLiveInfo(BaseModel):
     date_range: DateRange
     prefecture: Prefecture
     venue: str
+    apply_status: ApplyState

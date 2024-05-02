@@ -6,14 +6,14 @@ from scraper import Scraper
 from util.date_range import DateRange
 
 from repository.scraping.browser_manager import BrowserManager, SearchBy
-from repository.scraping.eplus.live_detail_extractor import LiveDetailsExtractor
+from repository.scraping.eplus.raw_live_info_extractor import RawLiveInfoExtractor
 
 
 class EPlusScraper(Scraper):
     def __init__(self, url: str):
         super().__init__(url)
         self.browser_manager = BrowserManager(url)
-        self.live_details_extractor = LiveDetailsExtractor(self.browser_manager)
+        self.live_details_extractor = RawLiveInfoExtractor(self.browser_manager)
 
     def search_live(self, artist: str):
         self._move_artist_search_result(artist)
@@ -41,10 +41,10 @@ class EPlusScraper(Scraper):
     def _scan_live(self, live_detail_url: str, index: int):
         raw_live_infos = self.live_details_extractor.extract_live_details(index)
 
-        self.browser_manager.get(live_detail_url)
-        tickets = self._scan_tickets_details(live_detail_url)
+        # self.browser_manager.get(live_detail_url)
+        tickets = self._scan_tickets_details()
         live = self._create_live_object(raw_live_infos, live_detail_url, tickets)
-        self.browser_manager.back()
+        # self.browser_manager.back()
         return live
 
     def _scan_tickets_details(self) -> list[Ticket]:
@@ -66,6 +66,7 @@ class EPlusScraper(Scraper):
             date_range=raw_live_infos.date_range,
             prefecture=raw_live_infos.prefecture,
             venue=raw_live_infos.venue,
+            apply_status=raw_live_infos.apply_status,
             website_url=live_detail_url,
             tickets=tickets,
         )
