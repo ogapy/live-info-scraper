@@ -4,54 +4,47 @@ from datetime import datetime
 from Entity.live import Live, Prefecture, RawLiveInfo
 from Entity.ticket import Ticket
 from scraper import Scraper
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
 from util.date_range import DateRange
+
+from repository.scraping.browser_manager import BrowserManager, SearchBy
 
 
 class EPlusScraper(Scraper):
     def __init__(self, url: str):
         super().__init__(url)
+        self.browser_manager = BrowserManager(url)
 
     def search_live(self, artist: str):
-        browser = self._activate_browser()
+        self._move_artist_search_result(artist)
+        lives_url = self._scan_lives_url()
 
-        self._move_artist_search_result(browser, artist)
-        lives_url = self._scan_lives_url(browser)
-
-        lives = self._scan_lives(lives_url, browser)
+        lives = self._scan_lives(lives_url)
         print(lives)
 
-    def _activate_browser(self):
-        options = Options()
-        options.add_argument("--headless")
-        browser = webdriver.Chrome(options=options)
-        browser.get(self.url)
-        return browser
+    def _move_artist_search_result(self, artist: str):
+        self.browser_manager.send_keys(SearchBy.ID, "head_keyword", artist)
+        self.browser_manager.click(SearchBy.ID, "head_search")
 
-    def _move_artist_search_result(self, browser: webdriver.Chrome, artist: str):
-        browser.find_element(By.ID, "head_keyword").send_keys(artist)
-        browser.find_element(By.ID, "head_search").click()
-
-    def _scan_lives_url(self, browser: webdriver.Chrome):
+    def _scan_lives_url(self):
         return [
-            live.get_attribute("href")
-            for live in browser.find_elements(
-                By.CSS_SELECTOR,
+            live.get_attribute(
+                "href"
+            )  # TODO: seleniumのメソッドを直接つかうのはよくない
+            for live in self.browser_manager.find_elements(
+                SearchBy.CSS_SELECTOR,
                 "a[href*='/sf/detail/']",
             )
         ]
 
-    def _scan_lives(self, urls: list[str], browser: webdriver.Chrome):
-        return [self._scan_live(url, browser, i) for i, url in enumerate(urls)]
+    def _scan_lives(self, urls: list[str]):
+        return [self._scan_live(url, i) for i, url in enumerate(urls)]
 
-    def _scan_live(self, live_detail_url: str, browser: webdriver.Chrome, index: int):
+    def _scan_live(self, live_detail_url: str, index: int):
         # ライブの一覧ページにいます
-        raw_live_infos = self._scan_live_details(browser, index + 1)
+        raw_live_infos = self._scan_live_details(index + 1)
         # tickets = self._scan_tickets_details(live_detail_url, browser)
 
-        browser.get(live_detail_url)
+        self.browser_manager.get(live_detail_url)
         tickets: list[Ticket] = [
             Ticket(
                 name="チケット",
@@ -71,23 +64,23 @@ class EPlusScraper(Scraper):
             website_url=live_detail_url,
             tickets=tickets,
         )
-        browser.back()
+        self.browser_manager.back()
         return live
 
-    def _scan_live_details(self, browser: webdriver.Chrome, index: int):
-        venue_text = browser.find_element(
-            By.CSS_SELECTOR,
+    def _scan_live_details(self, index: int):
+        venue_text = self.browser_manager.find_element(
+            SearchBy.CSS_SELECTOR,
             f"a[href*='/sf/detail/']:nth-child({index}) .ticket-item__venue",
         ).text
-        raw_date_range = browser.find_element(
-            By.CSS_SELECTOR,
+        raw_date_range = self.browser_manager.find_element(
+            SearchBy.CSS_SELECTOR,
             f"a[href*='/sf/detail/']:nth-child({index}) .ticket-item__left",
         ).text
         start_date, end_date = self._extract_date_range(raw_date_range)
 
         return RawLiveInfo(
-            name=browser.find_element(
-                By.CSS_SELECTOR,
+            name=self.browser_manager.find_element(
+                SearchBy.CSS_SELECTOR,
                 f"a[href*='/sf/detail/']:nth-child({index}) .ticket-item__title",
             ).text,
             raw_date_range=raw_date_range,
