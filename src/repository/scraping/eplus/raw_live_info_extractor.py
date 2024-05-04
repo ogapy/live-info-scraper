@@ -2,8 +2,9 @@ import re
 from datetime import datetime
 
 from Entity.live import LiveApplyState, Prefecture, RawLiveInfo
-from repository.scraping.browser_manager import SearchBy
 from util.date_range import DateRange
+
+from repository.scraping.browser_manager import SearchBy
 
 
 class RawLiveInfoExtractor:
@@ -51,9 +52,12 @@ class RawLiveInfoExtractor:
 
     def _parse_date_range(self, raw_date_range: str) -> DateRange:
         def _parse_date(date: str) -> datetime:
-            year, month, day = map(
-                int, re.search(r"(\d{4})/(\d{1,2})/(\d{1,2})", date).groups()
-            )
+            match = re.search(r"(\d{4})/(\d{1,2})/(\d{1,2})", date)
+            if not match:
+                raise ValueError(
+                    f"日付の形式が正しくありません。raw_date_range: {raw_date_range}"
+                )
+            year, month, day = map(int, match.groups())
 
             return datetime(year, month, day)
 

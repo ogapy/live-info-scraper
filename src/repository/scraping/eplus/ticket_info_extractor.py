@@ -1,9 +1,8 @@
 from datetime import datetime
 
 from Entity.ticket import Ticket, TicketApplyState
-from util.date_range import DateRange
-
 from repository.scraping.browser_manager import SearchBy
+from util.date_range import DateRange
 
 
 class TicketsInfoExtractor:
@@ -11,7 +10,7 @@ class TicketsInfoExtractor:
         self.browser_manager = browser_manager
         self.ticket_info_extractor = TicketInfoExtractor(browser_manager)
 
-    def extract_tickets(self, live_url) -> Ticket:
+    def extract_tickets(self, live_url) -> list[Ticket]:
         self.browser_manager.get(live_url)
 
         self._display_closed_apply_tickets()
