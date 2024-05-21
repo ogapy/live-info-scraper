@@ -2,9 +2,8 @@ import re
 from datetime import datetime
 
 from Entity.live import LiveApplyState, Prefecture, RawLiveInfo
+from repository.scraping import SearchBy
 from util.date_range import DateRange
-
-from repository.scraping.browser_manager import SearchBy
 
 
 class RawLiveInfoExtractor:

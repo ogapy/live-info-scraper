@@ -1,7 +1,7 @@
 from datetime import datetime
 
+from adapter.scraping import SearchBy
 from Entity.ticket import Ticket, TicketApplyState
-from repository.scraping.browser_manager import SearchBy
 from util.date_range import DateRange
 
 
@@ -90,4 +90,5 @@ class TicketInfoExtractor:
         year, month, day = map(int, date_parts[0].split("/"))
         hour, minute = map(int, time.split(":"))
 
+        return datetime(year, month, day, hour, minute)
         return datetime(year, month, day, hour, minute)

@@ -1,4 +1,4 @@
-from repository.scraping.eplus.eplus_search import EPlusScraper
+from repository.scraping.eplus import EPlusScraper
 
 
 def main():
