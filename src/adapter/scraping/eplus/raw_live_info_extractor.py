@@ -1,8 +1,8 @@
 import re
 from datetime import datetime
 
+from adapter.scraping import SearchBy
 from Entity.live import LiveApplyState, Prefecture, RawLiveInfo
-from repository.scraping import SearchBy
 from util.date_range import DateRange
 
 

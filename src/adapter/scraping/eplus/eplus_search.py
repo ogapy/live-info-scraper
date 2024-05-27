@@ -1,7 +1,9 @@
-from Entity.live import Live
-from repository.scraping import BrowserManager, SearchBy
-from repository.scraping.eplus import RawLiveInfoExtractor, TicketsInfoExtractor
+from adapter.scraping import BrowserManager, SearchBy
 from adapter.scraping.scraper import Scraper
+from Entity.live import Live
+
+from .raw_live_info_extractor import RawLiveInfoExtractor
+from .ticket_info_extractor import TicketsInfoExtractor
 
 
 class EPlusScraper(Scraper):
